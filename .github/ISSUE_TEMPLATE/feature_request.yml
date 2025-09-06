@@ -21,21 +21,14 @@ body:
       validations:
           required: true
 
-    - type: textarea
-      id: use-case
+    - type: Expected Improvements
+      id: expected-improvements
       attributes:
-          label: 💡 Use Case
-          description: How would this feature improve your experience or workflow?
-          placeholder: Share a specific use case or scenario where this feature would be helpful.
+          label: 💡 Expected Improvements
+          description: Improvements expected from this feature.
+          placeholder: Describe the improvements you expect from this feature.
       validations:
           required: true
-
-    - type: textarea
-      id: benefits
-      attributes:
-          label: 🎯 Benefits
-          description: What value would this feature bring to users or the community?
-          placeholder: Explain how this feature would make a positive impact.
 
     - type: textarea
       id: screenShots
