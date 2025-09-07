@@ -57,20 +57,25 @@ app.use(
             useDefaults: true,
             directives: {
                 "default-src": ["'self'"],
-                "img-src": ["'self'", "data:", "https:"], // allow external images
+                "img-src": ["'self'", "data:", "https:"],
                 "script-src": [
                     "'self'",
-                    "https://cdn.jsdelivr.net", // bootstrap, etc.
-                    "https://cdn.gtranslate.net", // gtranslate widget
-                    "'unsafe-inline'", // allow inline scripts (remove in prod if possible)
+                    "https://cdn.jsdelivr.net",
+                    "https://cdn.gtranslate.net",
+                    "https://www.chatbase.co", // 👈 allow Chatbase script
+                    "'unsafe-inline'",
                 ],
                 "style-src": [
                     "'self'",
-                    "'unsafe-inline'", // needed for Bootstrap inline styles
-                    "https://cdnjs.cloudflare.com", // fontawesome
-                    "https://cdn.jsdelivr.net", // bootstrap css
+                    "'unsafe-inline'",
+                    "https://cdnjs.cloudflare.com",
+                    "https://cdn.jsdelivr.net",
                 ],
                 "font-src": ["'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+                "connect-src": [
+                    "'self'",
+                    "https://www.chatbase.co", // 👈 allow Chatbase API
+                ],
             },
         },
     })

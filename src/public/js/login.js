@@ -1,23 +1,36 @@
-// Toggle between Login and Register forms
-document.getElementById("login-toggle").addEventListener("click", () => {
-    document.getElementById("login-form").classList.remove("hidden");
-    document.getElementById("register-form").classList.add("hidden");
-    document.getElementById("login-toggle").classList.add("active");
-    document.getElementById("register-toggle").classList.remove("active");
-});
+document.addEventListener("DOMContentLoaded", () => {
+    const loginToggle = document.getElementById("login-toggle");
+    const registerToggle = document.getElementById("register-toggle");
+    const switchToRegister = document.getElementById("switch-to-register");
+    const switchToLogin = document.getElementById("switch-to-login");
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
 
-document.getElementById("register-toggle").addEventListener("click", () => {
-    document.getElementById("register-form").classList.remove("hidden");
-    document.getElementById("login-form").classList.add("hidden");
-    document.getElementById("register-toggle").classList.add("active");
-    document.getElementById("login-toggle").classList.remove("active");
-});
+    if (loginToggle && registerToggle && loginForm && registerForm) {
+        loginToggle.addEventListener("click", () => {
+            loginForm.classList.remove("hidden");
+            registerForm.classList.add("hidden");
+            loginToggle.classList.add("active");
+            registerToggle.classList.remove("active");
+        });
 
-// Switch forms via text link
-document.getElementById("switch-to-register").addEventListener("click", () => {
-    document.getElementById("register-toggle").click();
-});
+        registerToggle.addEventListener("click", () => {
+            registerForm.classList.remove("hidden");
+            loginForm.classList.add("hidden");
+            registerToggle.classList.add("active");
+            loginToggle.classList.remove("active");
+        });
+    }
 
-document.getElementById("switch-to-login").addEventListener("click", () => {
-    document.getElementById("login-toggle").click();
+    if (switchToRegister && registerToggle) {
+        switchToRegister.addEventListener("click", () => {
+            registerToggle.click();
+        });
+    }
+
+    if (switchToLogin && loginToggle) {
+        switchToLogin.addEventListener("click", () => {
+            loginToggle.click();
+        });
+    }
 });
