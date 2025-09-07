@@ -1,9 +1,5 @@
-// app.js (improved)
-// Keep using CommonJS `require` to match existing code style
-
-// Load env as early as possible
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
+if (process.env.NODE_ENV != "production") {
+    require("dotenv").config(); // Load environment variables
 }
 
 // IMPORTANT: `express-async-errors` lets async errors bubble to express error handler
@@ -29,31 +25,56 @@ const morgan = require("morgan");
 const mongoSanitize = require("express-mongo-sanitize");
 const xssClean = require("xss-clean");
 
-// Rate Limiter and helpers (already present)
-const apiLimiter = require("./middlewares/rateLimiter.middleware.js");
-
-// Passport & user model
+// Passport Configuration
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
+
+// Import User model (Fix for passport authentication)
 const User = require("./models/user.model.js");
 
-// Utils
+// Import Utility Functions
 const apiError = require("./utils/apiError.js");
 const apiResponse = require("./utils/apiResponse.js");
 
-// ------------------------- Basic security & middleware (top) -------------------------
+// Rate Limiter
+const apiLimiter = require("./middlewares/rateLimiter.middleware.js");
+
+// Basic security & middleware (top)
 const NODE_ENV = process.env.NODE_ENV || "development";
 const IS_PROD = NODE_ENV === "production";
 const IS_TEST = NODE_ENV === "test";
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:8000";
 
+// ✅ Render ke proxy ko trust karo (production me)
 if (IS_PROD) {
-  // trust proxy (e.g., when behind nginx, load balancer, Heroku)
-  app.set("trust proxy", 1);
+    app.set("trust proxy", 1);
 }
 
 // Security headers
-app.use(helmet());
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            useDefaults: true,
+            directives: {
+                "default-src": ["'self'"],
+                "img-src": ["'self'", "data:", "https:"], // allow external images
+                "script-src": [
+                    "'self'",
+                    "https://cdn.jsdelivr.net", // bootstrap, etc.
+                    "https://cdn.gtranslate.net", // gtranslate widget
+                    "'unsafe-inline'", // allow inline scripts (remove in prod if possible)
+                ],
+                "style-src": [
+                    "'self'",
+                    "'unsafe-inline'", // needed for Bootstrap inline styles
+                    "https://cdnjs.cloudflare.com", // fontawesome
+                    "https://cdn.jsdelivr.net", // bootstrap css
+                ],
+                "font-src": ["'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+            },
+        },
+    })
+);
 
 // Prevent HTTP Parameter Pollution
 app.use(hpp());
@@ -69,12 +90,34 @@ app.use(compression());
 
 // request logging
 if (!IS_TEST) {
-  app.use(morgan(IS_PROD ? "combined" : "dev"));
+    app.use(morgan(IS_PROD ? "combined" : "dev"));
 }
+// // CORS (strict origin check)
+// app.use(
+//     cors({
+//         origin: (origin, callback) => {
+//             // allow tools like curl/postman (no origin)
+//             if (!origin) return callback(null, true);
+//             if (origin === CORS_ORIGIN) return callback(null, true);
+//             return callback(new Error("CORS not allowed from this origin"), false);
+//         },
+//         credentials: true,
+//         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+//     })
+// );
 
+// CORS Configuration
+app.use(
+    cors({
+        origin: process.env.CORS_ORIGIN || "http://localhost:8000",
+        credentials: true,
+    })
+);
+
+// Middleware Setup (✅ Moved to the top)
 // Body parsers with safe limits
-app.use(express.urlencoded({ extended: true, limit: "100kb" }));
-app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Cookies
 app.use(cookieParser());
@@ -83,20 +126,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "/public")));
 app.use(methodOverride("_method"));
 
-// CORS (strict origin check)
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // allow tools like curl/postman (no origin)
-      if (!origin) return callback(null, true);
-      if (origin === CORS_ORIGIN) return callback(null, true);
-      return callback(new Error("CORS not allowed from this origin"), false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  })
-);
-
 // ------------------------- View engine -------------------------
 app.engine("ejs", ejsMate);
 app.set("views", path.join(__dirname, "views"));
@@ -104,33 +133,33 @@ app.set("view engine", "ejs");
 
 // ------------------------- Session -------------------------
 const sessionOptions = {
-  name: process.env.SESSION_NAME || "sid",
-  secret: process.env.SESSION_SECRET || "mysecret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    secure: IS_PROD, // set true in production (requires https)
-    sameSite: IS_PROD ? "none" : "lax", // if using cross-site cookies in prod set 'none' and secure
-    // domain: process.env.SESSION_COOKIE_DOMAIN || undefined, // optional
-  },
+    name: process.env.SESSION_NAME || "sid",
+    secret: process.env.SESSION_SECRET || "mysecret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: IS_PROD, // set true in production (requires https)
+        sameSite: IS_PROD ? "none" : "lax", // if using cross-site cookies in prod set 'none' and secure
+        // domain: process.env.SESSION_COOKIE_DOMAIN || undefined, // optional
+    },
 };
 
 // Only attach store when not in test env to avoid Jest open handle issues
 if (!IS_TEST) {
-  sessionOptions.store = MongoStore.create({
-    mongoUrl: process.env.DB_URL || process.env.MONGODB_URI,
-    collectionName: "sessions",
-    ttl: 7 * 24 * 60 * 60, // 7 days
-  });
+    sessionOptions.store = MongoStore.create({
+        mongoUrl: process.env.DB_URL || process.env.MONGODB_URI,
+        collectionName: "sessions",
+        ttl: 7 * 24 * 60 * 60, // 7 days
+    });
 }
 
 app.use(session(sessionOptions));
 app.use(flash());
 
-// ------------------------- Passport -------------------------
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -138,16 +167,15 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// ------------------------- Global locals -------------------------
+// Global locals
 app.use((req, res, next) => {
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  res.locals.currentUser = req.user || null;
-  next();
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    res.locals.currentUser = req.user || null;
+    next();
 });
 
-// ------------------------- Routes Registration -------------------------
-// Import routes (keep requires lazy and top-level)
+// Import routes
 const healthCheckRouter = require("./routes/healthCheck_route.js");
 const dictionaryRoutes = require("./routes/dictionary.routes.js");
 const rightsRoutes = require("./routes/rights.routes.js");
@@ -184,44 +212,42 @@ app.get("/api/search", smartSearch);
 
 // 404 handler for HTML or API
 app.all("*", (req, res) => {
-  // if request accepts html render page, else return json
-  if (req.accepts("html")) {
-    return res.status(404).render("pages/nopage");
-  }
-  return res.status(404).json(new apiResponse(404, null, "Not Found"));
+    // if request accepts html render page, else return json
+    if (req.accepts("html")) {
+        return res.status(404).render("pages/nopage");
+    }
+    return res.status(404).json(new apiResponse(404, null, "Not Found"));
 });
 
 // ------------------------- Global Error Handler -------------------------
 app.use((err, req, res, next) => {
-  const isProd = IS_PROD;
-  const isTest = IS_TEST;
+    const isProd = IS_PROD;
+    const isTest = IS_TEST;
 
-  // log for developers
-  if (!isProd && !isTest) {
-    if (err.name === "apiError" || err instanceof apiError) {
-      console.error(`❌ ${err.message} [${err.statusCode}]`);
-    } else {
-      console.error("🔥 Unexpected Error:", err);
+    // log for developers
+    if (!isProd && !isTest) {
+        if (err.name === "apiError" || err instanceof apiError) {
+            console.error(`❌ ${err.message} [${err.statusCode}]`);
+        } else {
+            console.error("🔥 Unexpected Error:", err);
+        }
     }
-  }
 
-  const statusCode = err.statusCode || 500;
-  // If request expects HTML, render an error page (friendly)
-  if (req.accepts("html")) {
-    // In production avoid exposing stack traces
+    const statusCode = err.statusCode || 500;
+    // If request expects HTML, render an error page (friendly)
+    if (req.accepts("html")) {
+        // In production avoid exposing stack traces
+        return res.status(statusCode).render("pages/error", {
+            statusCode,
+            message: isProd ? "Internal Server Error" : err.message,
+            stack: isProd ? null : err.stack,
+        });
+    }
+
+    // Default: send structured JSON API response
     return res
-      .status(statusCode)
-      .render("pages/error", {
-        statusCode,
-        message: isProd ? "Internal Server Error" : err.message,
-        stack: isProd ? null : err.stack,
-      });
-  }
-
-  // Default: send structured JSON API response
-  return res
-    .status(statusCode)
-    .json(new apiResponse(statusCode, null, err.message || "Internal Server Error"));
+        .status(statusCode)
+        .json(new apiResponse(statusCode, null, err.message || "Internal Server Error"));
 });
 
 // ------------------------- DB connect + graceful shutdown -------------------------
@@ -229,91 +255,91 @@ let serverInstance = null;
 
 // Simple connect function using mongoose - throws on failure
 async function connectDBAndStart(appPort) {
-  const uri = process.env.DB_URL || process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error("MONGODB connection URI is not defined in environment (DB_URL or MONGODB_URI)");
-  }
+    const uri = process.env.DB_URL;
+    if (!uri) {
+        throw new Error("MONGODB connection URI is not defined in environment (DB_URL)");
+    }
 
-  try {
-    // mongoose.connect will throw if it cannot connect
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
-    console.log("✅ MongoDB connected");
+    try {
+        // mongoose.connect will throw if it cannot connect
+        await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
+        console.log("✅ MongoDB connected");
 
-    // expose dbClose for graceful shutdown
-    global.dbClose = async () => {
-      try {
-        await mongoose.disconnect();
-        console.log("✅ MongoDB disconnected");
-      } catch (err) {
-        console.warn("⚠️ Error while disconnecting MongoDB:", err);
-      }
-    };
+        // expose dbClose for graceful shutdown
+        global.dbClose = async () => {
+            try {
+                await mongoose.disconnect();
+                console.log("✅ MongoDB disconnected");
+            } catch (err) {
+                console.warn("⚠️ Error while disconnecting MongoDB:", err);
+            }
+        };
 
-    // start server after DB connected
-    serverInstance = app.listen(appPort, () => {
-      console.log(`🚀 Server running at http://localhost:${appPort} [${NODE_ENV}]`);
-    });
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err);
-    // rethrow to be handled by caller
-    throw err;
-  }
+        // start server after DB connected
+        serverInstance = app.listen(appPort, () => {
+            console.log(`🚀 Server running at http://localhost:${appPort} [${NODE_ENV}]`);
+        });
+    } catch (err) {
+        console.error("❌ MongoDB connection error:", err);
+        // rethrow to be handled by caller
+        throw err;
+    }
 }
 
 // graceful shutdown
 let shuttingDown = false;
 async function gracefulShutdown(signal) {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
 
-  // close HTTP server if running
-  if (serverInstance && serverInstance.listening) {
-    await new Promise((resolve) => serverInstance.close(resolve));
-    console.log("✅ HTTP server closed");
-  }
-
-  // close DB if available
-  try {
-    if (typeof global.dbClose === "function") {
-      await global.dbClose();
+    // close HTTP server if running
+    if (serverInstance && serverInstance.listening) {
+        await new Promise((resolve) => serverInstance.close(resolve));
+        console.log("✅ HTTP server closed");
     }
-  } catch (err) {
-    console.warn("⚠️ Error closing DB:", err);
-  }
 
-  console.log("✅ Graceful shutdown complete.");
-  // ensure exit
-  process.exit(0);
+    // close DB if available
+    try {
+        if (typeof global.dbClose === "function") {
+            await global.dbClose();
+        }
+    } catch (err) {
+        console.warn("⚠️ Error closing DB:", err);
+    }
+
+    console.log("✅ Graceful shutdown complete.");
+    // ensure exit
+    process.exit(0);
 }
 
 // handle signals
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught exception:", err);
-  gracefulShutdown("uncaughtException");
+    console.error("❌ Uncaught exception:", err);
+    gracefulShutdown("uncaughtException");
 });
 process.on("unhandledRejection", (reason) => {
-  console.error("❌ Unhandled Rejection:", reason);
-  gracefulShutdown("unhandledRejection");
+    console.error("❌ Unhandled Rejection:", reason);
+    gracefulShutdown("unhandledRejection");
 });
 
 // convenience start function used by server runner
 async function startServer(port = process.env.PORT || 3000) {
-  try {
-    await connectDBAndStart(port);
-  } catch (err) {
-    console.error("Failed to start server:", err);
-    // run graceful shutdown to use the same cleanup path
-    await gracefulShutdown("startupFailure");
-  }
+    try {
+        await connectDBAndStart(port);
+    } catch (err) {
+        console.error("Failed to start server:", err);
+        // run graceful shutdown to use the same cleanup path
+        await gracefulShutdown("startupFailure");
+    }
 }
 
 // if this file is run directly, start the server.
 // If required as module (tests), exports `app` and `startServer()`
 if (require.main === module) {
-  startServer(process.env.PORT || 3000);
+    startServer(process.env.PORT || 3000);
 }
 
 module.exports = app;
