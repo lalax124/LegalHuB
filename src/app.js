@@ -75,6 +75,11 @@ app.use(
                 "connect-src": [
                     "'self'",
                     "https://www.chatbase.co", // 👈 allow Chatbase API
+                    "wss://www.chatbase.co",
+                ],
+                "frame-src": [
+                    "'self'",
+                    "https://www.chatbase.co", // ✅ allows embedding their iframe
                 ],
             },
         },
