@@ -2,6 +2,7 @@ const Notification = require("../models/notification.model.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const apiError = require("../utils/apiError.js");
 const apiResponse = require("../utils/apiResponse.js");
+const mongoose = require("mongoose");
 
 // Fetch current user's notifications
 const getUserNotifications = asyncHandler(async (req, res) => {
@@ -24,16 +25,27 @@ const getUserNotifications = asyncHandler(async (req, res) => {
 const markAsRead = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const notification = await Notification.findOneAndUpdate(
-        { _id: id, user: req.user._id },
-        { status: "read" },
-        { new: true }
-    );
-
+    const notification = await Notification.findById(id);
     if (!notification) {
         return res.status(404).json({ success: false, message: "Notification not found" });
     }
-    res.status(200).json(new apiResponse(200, notification, "Notification marked as read"));
+
+    // short-circuit if already read
+    if (notification.status === "read") {
+        return res
+            .status(200)
+            .json({ success: true, message: "Already marked as read", data: notification });
+    }
+
+    // mark and save (runs validation, middleware, updates timestamps)
+    notification.status = "read";
+    await notification.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Notification marked as read",
+        data: notification,
+    });
 });
 
 // Admin: fetch all notifications

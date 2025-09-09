@@ -9,7 +9,7 @@ const { isLoggedIn } = require("../middlewares/auth.middleware.js");
 
 // User routes
 router.get("/", isLoggedIn, getUserNotifications);
-router.post("/:id/read", isLoggedIn, markAsRead);
+router.post("/:id/read", markAsRead);
 
 // Admin routes
 router.get("/all", isLoggedIn, getAllNotifications); // restrict inside controller/middleware
