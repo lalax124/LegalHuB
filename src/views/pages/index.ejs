@@ -15,7 +15,7 @@
         <input type="text" id="term-input" placeholder="Enter a legal term..." required />
         <button type="submit" id="search-button">Search</button>
       </form>
-      <div id="result">
+      <div id="result" class="hidden">
         <h2 class="term-title">Result:</h2>
         <p id="term-definition">Searching...</p>
       </div>
@@ -76,7 +76,7 @@
   </section>
 
   <!-- FAQ Section -->
-  <div class="faq-container" id="faq">
+  <div class="container faq-container" id="faq">
     <div class="faq-left">
       <h2>Frequently Asked Questions</h2>
       <p>
@@ -170,16 +170,17 @@
     if (!term) return;
 
     definition.innerText = '🔎 Searching...';
+    resultContainer.classList.remove('hidden');
     resultContainer.classList.add('show');
 
     try {
-      const res = await fetch(`api/dictionary/${term}`);
+      const res = await fetch(`/api/dictionary/${term}`);
       const data = await res.json();
 
       if (data.success) {
-        definition.innerText = data.data.response;
+        definition.innerHTML = data.data.response; // use innerHTML for formatted content
       } else {
-        definition.innerText = `❌ Error: ${data.msg}`;
+        definition.innerHTML = `<span style="color:red;">❌ Error: ${data.msg}</span>`;
       }
     } catch (error) {
       definition.innerText = '❌ Failed to fetch result. Try again!';

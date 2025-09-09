@@ -1,9 +1,8 @@
 /* ✅ FAQ Container */
 .faq-container {
     display: flex;
-    justify-content: space-between;
-    padding: 50px;
-    gap: 40px;
+    padding: 20px;
+    gap: 20px;
 }
 /* ✅ Left Section */
 .faq-left {
@@ -222,6 +221,10 @@
 }
 .hidden {
     display: none;
+}
+
+.show {
+    display: block;
 }
 /* ✅ Responsive */
 @media (max-width: 768px) {
