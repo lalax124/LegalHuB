@@ -5,11 +5,10 @@
     </div>
 
     <!-- Navigation & Login -->
-    <div class="nav-container" id="nav-container">
+    <div class="nav-container" id="nav-container" role="navigation" aria-label="Main Navigation">
       <ul class="nav-links">
         <li><a href="/articles">Articles</a></li>
         <li><a href="/documents">Documents</a></li>
-        <!-- <li><a href="/articles">Articles & Guides</a></li> -->
         <li><a href="/rights">Fundamental Rights</a></li>
         <li><a href="/about">About</a></li>
         <li><a href="/#FAQs">FAQs</a></li>
@@ -47,106 +46,90 @@
 
       <!-- Auth Links (Right side of navbar) -->
       <div class="auth-links">
-          <% if (currentUser) { %>
-            <div class="dropdown" id="profileDropdown">
-              <img src="<%= currentUser.profilePicture || 'https://cdn.vectorstock.com/i/1000v/51/87/student-avatar-user-profile-icon-vector-47025187.jpg' %>" 
-              alt="Profile" 
-              class="profile-avatar" 
-              id="avatarBtn" />
+        <% if (currentUser) { %>
+          <div class="dropdown" id="profileDropdown">
+            <img
+              src="<%= currentUser.profilePicture || 'https://cdn.vectorstock.com/i/1000v/51/87/student-avatar-user-profile-icon-vector-47025187.jpg' %>"
+              alt="Profile"
+              class="profile-avatar avatar-btn"
+              tabindex="0"
+              aria-haspopup="true"
+              aria-expanded="false"
+            />
 
-              <div class="dropdown-content">
-                <div class="profile-info">
-                  <img src="<%= currentUser.profilePicture || 'https://cdn.vectorstock.com/i/1000v/51/87/student-avatar-user-profile-icon-vector-47025187.jpg' %>" 
-                  alt="Profile" 
-                  class="profile-avatar" 
-                  id="avatarBtn" />
-                  <div>
-                    <span><%= currentUser.username %></span>
-                    <span><%= currentUser.email %></span>
-                  </div>
-                  <span class="close-btn" id="closeBtn">&times;</span>
+            <div class="dropdown-content" id="dropdownContent" role="menu" aria-hidden="true">
+              <div class="profile-info">
+                <img
+                  src="<%= currentUser.profilePicture || 'https://cdn.vectorstock.com/i/1000v/51/87/student-avatar-user-profile-icon-vector-47025187.jpg' %>"
+                  alt="Profile"
+                  class="profile-avatar"
+                />
+                <div>
+                  <span><%= currentUser.username %></span><br />
+                  <span><%= currentUser.email %></span>
                 </div>
-                <hr />
-                <div class="dropdown-links">
-                  <a href="/api/users/profile" style="margin-left: 0px;"><i class="fa-solid fa-user" style="padding-right: 8px; "></i>Profile</a>
-                  <a href="/api/users/logout" style="margin-left: 0px;"><i class="fa-solid fa-right-from-bracket" style="padding-right: 8px;"></i>Logout</a>
-                </div>
+                <button class="close-btn" id="closeProfileBtn" aria-label="Close profile">&times;</button>
+              </div>
+              <hr />
+              <div class="dropdown-links">
+                <a href="/api/users/profile"><i class="fa-solid fa-user" style="padding-right: 8px;"></i>Profile</a>
+                <a href="/api/users/logout"><i class="fa-solid fa-right-from-bracket" style="padding-right: 8px;"></i>Logout</a>
               </div>
             </div>
-          <% } else { %>
-            <a href="/login">Login</a>
-          <% } %>
+          </div>
+        <% } else { %>
+          <a href="/login">Login</a>
+        <% } %>
       </div>
-      </div>
-
-
-    
+    </div>
   </nav>
 </header>
 
 <script>
-  // elements
-  const hamburger = document.getElementById('hamburger');
-  const navContainer = document.getElementById('nav-container');
+  (function () {
+    const hamburger = document.getElementById('hamburger');
+    const navContainer = document.getElementById('nav-container');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const avatarBtns = document.querySelectorAll('.avatar-btn');
+    const closeProfileBtn = document.getElementById('closeProfileBtn');
 
-  // desktop
-  const avatarBtn = document.getElementById('avatarBtn');
-  const profileDropdown = document.getElementById('profileDropdown');
-  const closeBtn = document.getElementById('closeBtn');
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+    function disableBodyScroll(flag) { document.body.style.overflow = flag ? 'hidden' : ''; }
 
-  // hamburger toggle
-  hamburger?.addEventListener('click', () => {
-    navContainer.classList.toggle('active');
-    hamburger.classList.toggle('open');
-  });
-
-  // desktop avatar toggle
-  avatarBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    profileDropdown?.classList.toggle('show');
-  });
-
-
-  // close buttons
-  closeBtn?.addEventListener('click', () => profileDropdown?.classList.remove('show'));
-
-  // click outside closes any open panel
-  window.addEventListener('click', (e) => {
-    if (profileDropdown?.classList.contains('show') && !profileDropdown.contains(e.target)) {
-      profileDropdown.classList.remove('show');
+    function openNav(){
+      navContainer?.classList.add('active');
+      hamburger?.classList.add('open');
+      hamburger?.setAttribute('aria-expanded','true');
+      disableBodyScroll(true);
     }
-  });
-
-  // Esc closes panels
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      profileDropdown?.classList.remove('show');
+    function closeNav(){
+      navContainer?.classList.remove('active');
+      hamburger?.classList.remove('open');
+      hamburger?.setAttribute('aria-expanded','false');
+      disableBodyScroll(false);
     }
-  });
+    function toggleNav(){ navContainer?.classList.contains('active') ? closeNav() : openNav(); }
 
-</script>
+    hamburger?.addEventListener('click', (e) => { e.stopPropagation(); toggleNav(); });
 
-<script>
-  const notificationsDropdown = document.querySelector('.notifications');
-  const notificationsToggle = document.getElementById('notificationsDropdown');
+    navContainer?.querySelectorAll('a')?.forEach(a => {
+      a.addEventListener('click', () => { if (isMobile()) closeNav(); });
+    });
 
-  notificationsToggle?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    notificationsDropdown.classList.toggle('show');
-  });
+    avatarBtns?.forEach(btn => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown?.classList.toggle('show'); });
+      btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }});
+    });
 
-  // Close when clicking outside
-  window.addEventListener('click', (e) => {
-    if (notificationsDropdown.classList.contains('show') && !notificationsDropdown.contains(e.target)) {
-      notificationsDropdown.classList.remove('show');
-    }
-  });
+    closeProfileBtn?.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown?.classList.remove('show'); });
 
-  // Close on ESC
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      notificationsDropdown.classList.remove('show');
-    }
-  });
+    document.addEventListener('click', (e) => {
+      if (navContainer?.classList.contains('active') && !navContainer.contains(e.target) && !hamburger.contains(e.target)) closeNav();
+      if (profileDropdown?.classList.contains('show') && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'Esc') { closeNav(); profileDropdown?.classList.remove('show'); }});
+    window.addEventListener('resize', () => { if (!isMobile()) closeNav(); });
+    if (!isMobile()) closeNav();
+  })();
 </script>
