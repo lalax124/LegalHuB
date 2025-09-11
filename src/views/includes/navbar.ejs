@@ -5,10 +5,11 @@
     </div>
 
     <!-- Navigation & Login -->
-    <div class="nav-container" id="nav-container" role="navigation" aria-label="Main Navigation">
+    <div class="nav-container" id="nav-container">
       <ul class="nav-links">
         <li><a href="/articles">Articles</a></li>
         <li><a href="/documents">Documents</a></li>
+        <!-- <li><a href="/articles">Articles & Guides</a></li> -->
         <li><a href="/rights">Fundamental Rights</a></li>
         <li><a href="/about">About</a></li>
         <li><a href="/#FAQs">FAQs</a></li>
@@ -56,7 +57,6 @@
               aria-haspopup="true"
               aria-expanded="false"
             />
-
             <div class="dropdown-content" id="dropdownContent" role="menu" aria-hidden="true">
               <div class="profile-info">
                 <img
@@ -77,11 +77,14 @@
               </div>
             </div>
           </div>
-        <% } else { %>
-          <a href="/login">Login</a>
-        <% } %>
+          <% } else { %>
+            <a href="/login">Login</a>
+          <% } %>
       </div>
-    </div>
+      </div>
+
+
+    
   </nav>
 </header>
 
@@ -92,44 +95,103 @@
     const profileDropdown = document.getElementById('profileDropdown');
     const avatarBtns = document.querySelectorAll('.avatar-btn');
     const closeProfileBtn = document.getElementById('closeProfileBtn');
-
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
-    function disableBodyScroll(flag) { document.body.style.overflow = flag ? 'hidden' : ''; }
 
-    function openNav(){
+    function disableBodyScroll(flag) {
+      document.body.style.overflow = flag ? 'hidden' : '';
+    }
+
+    function openNav() {
       navContainer?.classList.add('active');
       hamburger?.classList.add('open');
-      hamburger?.setAttribute('aria-expanded','true');
+      hamburger?.setAttribute('aria-expanded', 'true');
       disableBodyScroll(true);
     }
-    function closeNav(){
+
+    function closeNav() {
       navContainer?.classList.remove('active');
       hamburger?.classList.remove('open');
-      hamburger?.setAttribute('aria-expanded','false');
+      hamburger?.setAttribute('aria-expanded', 'false');
       disableBodyScroll(false);
     }
-    function toggleNav(){ navContainer?.classList.contains('active') ? closeNav() : openNav(); }
 
-    hamburger?.addEventListener('click', (e) => { e.stopPropagation(); toggleNav(); });
+    function toggleNav() {
+      navContainer?.classList.contains('active') ? closeNav() : openNav();
+    }
 
+    // Toggle mobile menu
+    hamburger?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleNav();
+    });
+
+    // Close nav when clicking link (mobile only)
     navContainer?.querySelectorAll('a')?.forEach(a => {
       a.addEventListener('click', () => { if (isMobile()) closeNav(); });
     });
 
-    avatarBtns?.forEach(btn => {
-      btn.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown?.classList.toggle('show'); });
-      btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }});
+    // Profile dropdown toggle
+    avatarBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown?.classList.toggle('show');
+      });
     });
 
-    closeProfileBtn?.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown?.classList.remove('show'); });
+    // Close profile dropdown
+    closeProfileBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileDropdown?.classList.remove('show');
+    });
 
+    // Click outside → close
     document.addEventListener('click', (e) => {
-      if (navContainer?.classList.contains('active') && !navContainer.contains(e.target) && !hamburger.contains(e.target)) closeNav();
-      if (profileDropdown?.classList.contains('show') && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('show');
+      if (navContainer?.classList.contains('active') &&
+          !navContainer.contains(e.target) &&
+          !hamburger.contains(e.target)) {
+        closeNav();
+      }
+      if (profileDropdown?.classList.contains('show') &&
+          !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.remove('show');
+      }
     });
 
-    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'Esc') { closeNav(); profileDropdown?.classList.remove('show'); }});
+    // Escape key closes
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeNav();
+        profileDropdown?.classList.remove('show');
+      }
+    });
+
+    // Resize resets nav
     window.addEventListener('resize', () => { if (!isMobile()) closeNav(); });
-    if (!isMobile()) closeNav();
   })();
+</script>
+
+<script>
+  const notificationsDropdown = document.querySelector('.notifications');
+  const notificationsToggle = document.getElementById('notificationsDropdown');
+
+  notificationsToggle?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    notificationsDropdown.classList.toggle('show');
+  });
+
+  // Click outside
+  document.addEventListener('click', (e) => {
+    if (notificationsDropdown.classList.contains('show') &&
+        !notificationsDropdown.contains(e.target)) {
+      notificationsDropdown.classList.remove('show');
+    }
+  });
+
+  // Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      notificationsDropdown.classList.remove('show');
+    }
+  });
 </script>
