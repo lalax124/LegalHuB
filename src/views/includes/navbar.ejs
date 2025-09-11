@@ -31,7 +31,7 @@
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="notificationsDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
           <% if (notifications && notifications.length > 0) { %>
             <% notifications.forEach(n => { %>
-              <a class="dropdown-item <%= n.status === 'unread' ? 'font-weight-bold' : '' %>" href="/api/notifications">
+              <a class="dropdown-item <%= n.status === 'unread' ? 'font-weight-bold' : '' %>" href="/notifications">
                 <%= n.title %> <br/>
                 <small><%= n.createdAt.toLocaleString() %></small>
               </a>
