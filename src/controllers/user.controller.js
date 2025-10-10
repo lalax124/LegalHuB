@@ -29,7 +29,7 @@ const registerAccount = asyncHandler(async (req, res) => {
     // Validate role from backend whitelist
     const allowedRoles = ["user", "lawyer"];
     if (!allowedRoles.includes(role)) {
-        const errorMsg = "Invalid account type. Please select either User or Lawyer."; 
+        const errorMsg = "Invalid account type. Please select either User or Lawyer.";
         if (req.accepts("html")) {
             req.flash("error", errorMsg);
             return res.redirect("/register");
@@ -39,7 +39,7 @@ const registerAccount = asyncHandler(async (req, res) => {
 
     // 1️⃣ Required fields check
     if (!username || !email || !password || !confirmPassword) {
-        const errorMsg = "Please fill in all the required fields to create your account."; 
+        const errorMsg = "Please fill in all the required fields to create your account.";
         if (req.accepts("html")) {
             req.flash("error", errorMsg);
             return res.redirect("/register");
@@ -59,7 +59,7 @@ const registerAccount = asyncHandler(async (req, res) => {
 
     // 3️⃣ Password match check
     if (password !== confirmPassword) {
-        const errorMsg = "The passwords you entered don't match. Please try again."; 
+        const errorMsg = "The passwords you entered don't match. Please try again.";
         if (req.accepts("html")) {
             req.flash("error", errorMsg);
             return res.redirect("/register");
@@ -72,11 +72,12 @@ const registerAccount = asyncHandler(async (req, res) => {
     if (existing) {
         let msg = "";
         if (existing.email === email) {
-            msg = "This email is already registered. Please use a different email or try logging in.";
+            msg =
+                "This email is already registered. Please use a different email or try logging in.";
         } else {
             msg = "This username is already taken. Please choose a different one.";
         }
-        
+
         if (req.accepts("html")) {
             req.flash("error", msg);
             return res.redirect("/register");
@@ -89,14 +90,15 @@ const registerAccount = asyncHandler(async (req, res) => {
         // Additional check for existing email
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            const errorMsg = "This email is already registered. Please use a different email or try logging in.";
+            const errorMsg =
+                "This email is already registered. Please use a different email or try logging in.";
             if (req.accepts("html")) {
                 req.flash("error", errorMsg);
                 return res.redirect("/register");
             }
             throw new apiError(400, errorMsg);
         }
-        
+
         const newUser = new User({ username, email, role: role || "user" });
         // Uses passport-local-mongoose's register helper with hashing
         const registeredUser = await User.register(newUser, password);
@@ -105,7 +107,7 @@ const registerAccount = asyncHandler(async (req, res) => {
         if (registeredUser.role === "lawyer") {
             if (!lawyerProfile?.specialization || !lawyerProfile?.licenseNumber) {
                 const msg =
-                    "To register as a lawyer, please provide both your specialization and license number."; 
+                    "To register as a lawyer, please provide both your specialization and license number.";
                 if (req.accepts("html")) {
                     req.flash("error", msg);
                     return res.redirect("/register");
@@ -126,7 +128,8 @@ const registerAccount = asyncHandler(async (req, res) => {
         // 7️⃣ Login user after registration
         req.login(registeredUser, (err) => {
             if (err) {
-                const errorMsg = "Your account was created successfully, but we couldn't log you in automatically. Please try logging in manually."; 
+                const errorMsg =
+                    "Your account was created successfully, but we couldn't log you in automatically. Please try logging in manually.";
                 if (req.accepts("html")) {
                     req.flash("error", errorMsg);
                     return res.redirect("/login");
@@ -147,23 +150,25 @@ const registerAccount = asyncHandler(async (req, res) => {
         if (err.code === 11000) {
             const field = Object.keys(err.keyValue)[0];
             let errorMsg = "";
-            
+
             // User-friendly messages based on the field
             if (field === "email") {
-                errorMsg = "This email is already registered. Please use a different email or try logging in.";
+                errorMsg =
+                    "This email is already registered. Please use a different email or try logging in.";
             } else if (field === "username") {
                 errorMsg = "This username is already taken. Please choose a different one.";
             } else {
-                errorMsg = "An account with this information already exists. Please try logging in.";
+                errorMsg =
+                    "An account with this information already exists. Please try logging in.";
             }
-            
+
             if (req.accepts("html")) {
                 req.flash("error", errorMsg);
                 return res.redirect("/register");
             }
             throw new apiError(400, errorMsg);
         }
-        
+
         // Handle other errors
         if (req.accepts("html")) {
             req.flash("error", err.message);
