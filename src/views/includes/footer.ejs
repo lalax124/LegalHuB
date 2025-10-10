@@ -44,7 +44,7 @@
         <a href="#"><i class="fab fa-twitter"></i></a>
       </div>
       <% if (currentUser) { %>
-        <button id="notifyBtn" class="btn btn-outline-accent" style="margin-top: 20px; margin-left: -15px;">Send Notification (all)</button>
+        <button id="notifyBtn" class="btn btn-outline-accent" style="margin-top: 20px; color: azure; margin-left: -15px;">Send Notification (all)</button>
       <% } %>
     </div>
   </div>
@@ -130,16 +130,19 @@
     alert('Subscribed!');
   });
 
-  document.getElementById('notifyBtn').addEventListener('click', async () => {
-    const r = await fetch('/api/push/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payload: { title: 'Hello', body: 'This is a test notification', url: '/' } }),
+  const notifyBtn = document.getElementById('notifyBtn');
+  if (notifyBtn) {
+    notifyBtn.addEventListener('click', async () => {
+      const r = await fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload: { title: 'Hello', body: 'This is a test notification', url: '/' } }),
+      });
+      const data = await r.json();
+      console.log('send result', data);
+      alert('Send attempt complete; check console & server logs');
     });
-    const data = await r.json();
-    console.log('send result', data);
-    alert('Send attempt complete; check console & server logs');
-  });
+  }
 
   init().catch(console.error);
 </script>
