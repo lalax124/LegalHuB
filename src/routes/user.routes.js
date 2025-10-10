@@ -36,6 +36,7 @@ router.post(
     loginUser
 );
 
+
 // Logout
 router.route("/logout").get(logoutUser);
 
@@ -73,7 +74,28 @@ router.get("/forgot-password", (req, res) => {
     res.render("pages/forgot-password");
 });
 
+ feature-googleAuth
+// 🔹 Google OAuth Routes
+router.get(
+    "/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+    "/auth/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "/login",
+        failureFlash: true,
+    }),
+    (req, res) => {
+        // Successful login/signup with Google → redirect to profile or dashboard
+        res.redirect("/profile");
+    }
+);
+
+
 // toggle user status
 router.route("/toggle-active").post(toggleUserStatus);
+ main
 
 module.exports = router;
