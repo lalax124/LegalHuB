@@ -52,7 +52,7 @@
         <% if (currentUser) { %>
           <div class="dropdown" id="profileDropdown">
             <img
-              src="<%= currentUser.profilePicture || 'https://cdn.vectorstock.com/i/1000v/51/87/student-avatar-user-profile-icon-vector-47025187.jpg' %>"
+              src="<%= user.profilePicture ? user.profilePicture : 'https://cdn.vectorstock.com/i/1000v/51/87/student-avatar-user-profile-icon-vector-47025187.jpg' %>"
               alt="Profile"
               class="profile-avatar avatar-btn"
               tabindex="0"

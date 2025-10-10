@@ -46,6 +46,7 @@
   color: #f8fafc;
   background: linear-gradient(to right, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -169,7 +170,10 @@
   <!-- Profile Header -->
   <div class="profile-header">
     <div class="card-alt" style="text-align:center">
-      <img id="avatarImg" class="avatar" src="<%= user.profilePicture || '/pic/profile.jpg' %>" alt="Avatar">
+      <img id="avatarImg" class="avatar" 
+     src="<%= user.profilePicture ? user.profilePicture : '/pic/profile.jpg' %>" 
+     alt="Avatar">
+
       <h3 style="margin:0.5rem 0"><%= user.username %></h3>
 
       <div>
@@ -321,24 +325,24 @@ avatarInput.addEventListener('change', e => {
 (function computeProfileProgress(){
   let percent = 0;
 
-  <% if (user.role === 'lawyer') { %>
-    <% 
+<% if (user.role === 'lawyer') { %>
+  <% 
       const lawyerFields = [
         user.username,
         user.email,
         user.profilePicture,
-        user.lawyerProfile?.bio,
-        user.lawyerProfile?.licenseNumber,
-        user.lawyerProfile?.specialization,
-        (user.lawyerProfile?.city || user.lawyerProfile?.state)
+        user.lawyerProfile && user.lawyerProfile.bio,
+        user.lawyerProfile && user.lawyerProfile.licenseNumber,
+        user.lawyerProfile && user.lawyerProfile.specialization,
+        (user.lawyerProfile && (user.lawyerProfile.city || user.lawyerProfile.state))
       ];
       const lawyerScore = lawyerFields.filter(Boolean).length;
       const lawyerTotal = lawyerFields.length;
       const lawyerPercent = Math.round((lawyerScore / lawyerTotal) * 100);
     %>
-    percent = <%= lawyerPercent %>;
+  percent = <%= lawyerPercent %>;
   <% } else { %>
-    <% 
+  <% 
       const userFields = [
         user.username,
         user.email,
@@ -348,7 +352,7 @@ avatarInput.addEventListener('change', e => {
       const userTotal = userFields.length;
       const userPercent = Math.round((userScore / userTotal) * 100);
     %>
-    percent = <%= userPercent %>;
+  percent = <%= userPercent %>;
   <% } %>
 
   document.getElementById('profileProgress').style.width = percent + '%';

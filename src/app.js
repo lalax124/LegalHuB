@@ -213,16 +213,49 @@ passport.use(
                 let user = await User.findOne({ googleId: profile.id });
 
                 if (!user) {
-                    user = await User.create({
-                        googleId: profile.id,
-                        username: profile.emails[0].value,
-                        email: profile.emails[0].value,
-                        name: profile.displayName,
-                        profilePic: profile.photos[0]?.value,
-                    });
+                    // Check if a user with this email already exists (registered with local auth)
+                    const existingUser = await User.findOne({ email: profile.emails[0].value });
+
+                    if (existingUser) {
+                        // Link the Google account to this user
+                        existingUser.googleId = profile.id;
+
+                        if (!existingUser.profilePicture) {
+                            existingUser.profilePicture = profile.photos[0]?.value || undefined; // undefined will trigger default
+                        }
+
+                        if (!existingUser.name) existingUser.name = profile.displayName;
+
+                        // Only set username if missing; otherwise leave as-is
+                        if (!existingUser.username) {
+                            existingUser.username = undefined; // will use schema default if any
+                        }
+
+                        await existingUser.save();
+                        return done(null, existingUser);
+                    } else {
+                        // Create a new user with Google credentials
+                        user = await User.create({
+                            googleId: profile.id,
+                            email: profile.emails[0].value,
+                            name: profile.displayName || undefined,
+                            username: undefined, // leave undefined to use default
+                            profilePicture: profile.photos[0]?.value || undefined,
+                        });
+                        return done(null, user);
+                    }
                 }
                 return done(null, user);
             } catch (err) {
+                // Handle duplicate key error with a user-friendly message
+                if (err.code === 11000 && err.keyPattern && err.keyPattern.email) {
+                    return done(
+                        new Error(
+                            "An account with this email already exists. Please use a different email or try logging in with your existing account."
+                        ),
+                        null
+                    );
+                }
                 return done(err, null);
             }
         }
@@ -234,12 +267,25 @@ app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "em
 
 app.get(
     "/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login", failureFlash: true }),
+    passport.authenticate("google", {
+        failureRedirect: "/login",
+        failureFlash: true,
+    }),
     (req, res) => {
         // Successful login
+        req.flash("success", "Successfully logged in with Google!");
         res.redirect("/");
     }
 );
+
+// Add error handling for Google OAuth
+app.use("/auth/google/callback", (err, req, res, next) => {
+    if (err) {
+        req.flash("error", err.message || "Authentication failed. Please try again.");
+        return res.redirect("/login");
+    }
+    next();
+});
 
 // Import routes
 const healthCheckRouter = require("./routes/healthCheck_route.js");
