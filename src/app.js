@@ -17,7 +17,6 @@ const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const cookieParser = require("cookie-parser");
 
-
 // Security + utilities
 const helmet = require("helmet");
 const hpp = require("hpp");
@@ -29,7 +28,6 @@ const xssClean = require("xss-clean");
 // Passport Configuration
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
-
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 // Import User model (Fix for passport authentication)
@@ -113,7 +111,6 @@ if (!IS_TEST) {
 //     })
 // );
 
-
 // CORS Configuration
 app.use(
     cors({
@@ -175,6 +172,35 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+// Global locals
+app.use((req, res, next) => {
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    res.locals.currentUser = req.user || null;
+    next();
+});
+
+// Middleware to attach notifications to all responses
+app.use(async (req, res, next) => {
+    if (req.user) {
+        const notifications = await Notification.find({ user: req.user._id })
+            .sort({ createdAt: -1 })
+            .limit(5);
+
+        const unreadCount = await Notification.countDocuments({
+            user: req.user._id,
+            status: "unread",
+        });
+
+        res.locals.notifications = notifications;
+        res.locals.notificationsCount = unreadCount;
+    } else {
+        res.locals.notifications = [];
+        res.locals.notificationsCount = 0;
+    }
+    next();
+});
+
 passport.use(
     new GoogleStrategy(
         {
@@ -204,46 +230,16 @@ passport.use(
 );
 
 // ------------------------- Google OAuth Routes -------------------------
-app.get("/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
-);
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
-app.get("/auth/google/callback",
+app.get(
+    "/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/login", failureFlash: true }),
     (req, res) => {
         // Successful login
         res.redirect("/");
     }
 );
-
-// Global locals
-app.use((req, res, next) => {
-    res.locals.success = req.flash("success");
-    res.locals.error = req.flash("error");
-    res.locals.currentUser = req.user || null;
-    next();
-});
-
-// Middleware to attach notifications to all responses
-app.use(async (req, res, next) => {
-    if (req.user) {
-        const notifications = await Notification.find({ user: req.user._id })
-            .sort({ createdAt: -1 })
-            .limit(5);
-
-        const unreadCount = await Notification.countDocuments({
-            user: req.user._id,
-            status: "unread",
-        });
-
-        res.locals.notifications = notifications;
-        res.locals.notificationsCount = unreadCount;
-    } else {
-        res.locals.notifications = [];
-        res.locals.notificationsCount = 0;
-    }
-    next();
-});
 
 // Import routes
 const healthCheckRouter = require("./routes/healthCheck_route.js");

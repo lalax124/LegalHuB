@@ -5,7 +5,6 @@ const { Server } = require("socket.io");
 require("dotenv").config();
 const passport = require("./config/passport");
 
-
 // Try to require app module in a safe way that works for both:
 // 1) module.exports = app
 // 2) module.exports = { app, startServer }

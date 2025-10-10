@@ -15,11 +15,6 @@ const userSchema = new Schema(
             lowercase: true,
             trim: true,
         },
-        googleId: {
-            type: String, // Google unique user ID
-            unique: true,
-            sparse: true, // Allows either local or Google login
-        },
         role: {
             type: String,
             enum: ["user", "lawyer", "admin"],
@@ -47,6 +42,11 @@ const userSchema = new Schema(
             type: Boolean,
             default: false,
         },
+        googleId: {
+            type: String, // Google unique user ID
+            unique: true,
+            sparse: true, // Allows either local or Google login
+        },
         resetToken: String,
         resetTokenExpires: Date,
     },
@@ -55,7 +55,6 @@ const userSchema = new Schema(
     }
 );
 
-// Add Passport-Local plugin for username & password auth
 userSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model("User", userSchema);
