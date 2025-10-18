@@ -13,9 +13,9 @@
     "type": "commonjs",
     "main": "src/index.js",
     "scripts": {
-        "test": "NODE_ENV=test jest --detectOpenHandles",
-        "test:coverage": "NODE_ENV=test jest --coverage --passWithNoTests",
-        "test:ci": "NODE_ENV=test jest --ci --coverage --passWithNoTests --reporters=default --reporters=jest-junit --outputFile=test-results/junit.xml",
+        "test": "NODE_ENV=test SUPPRESS_CONSOLE=true jest --detectOpenHandles",
+        "test:coverage": "NODE_ENV=test SUPPRESS_CONSOLE=true jest --coverage --passWithNoTests",
+        "test:ci": "NODE_ENV=test SUPPRESS_CONSOLE=true jest --ci --coverage --passWithNoTests --reporters=default --reporters=jest-junit --outputFile=test-results/junit.xml",
         "test:suite": "node scripts/test-runner.js",
         "start": "node src/index.js",
         "dev": "nodemon src/index.js",

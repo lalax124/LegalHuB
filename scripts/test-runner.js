@@ -89,6 +89,9 @@ function buildTestCommand() {
     command += ' -- --verbose';
   }
 
+  // Set environment variable to suppress console logs
+  process.env.SUPPRESS_CONSOLE = 'true';
+
   return command;
 }
 
