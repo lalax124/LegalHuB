@@ -20,9 +20,10 @@
         "start": "node src/index.js",
         "dev": "nodemon src/index.js",
         "build": "echo 'No build step required for Express.js' && exit 0",
-        "format": "prettier --write . && eslint --fix ."
+        "format": "prettier --write . && npx eslint --fix ."
     },
     "devDependencies": {
+        "@eslint/js": "^9.37.0",
         "eslint": "^9.37.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
@@ -104,7 +105,9 @@
             "lcov",
             "html"
         ],
-        "reporters": ["default"]
+        "reporters": [
+            "default"
+        ]
     },
     "directories": {
         "test": "test"

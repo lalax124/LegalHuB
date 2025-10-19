@@ -127,11 +127,18 @@ describe("📄 Documents API", () => {
         // console.log("📥 Response status:", res.statusCode);
 
         // Write response to file for debugging
-        const fs = require('fs');
-        fs.writeFileSync('/mnt/data2/gssoc/LegalHuB/debug_response.json', JSON.stringify({
-            statusCode: res.statusCode,
-            body: res.body
-        }, null, 2));
+        const fs = require("fs");
+        fs.writeFileSync(
+            "/mnt/data2/gssoc/LegalHuB/debug_response.json",
+            JSON.stringify(
+                {
+                    statusCode: res.statusCode,
+                    body: res.body,
+                },
+                null,
+                2
+            )
+        );
 
         expect(res.statusCode).toBe(404);
         expect(res.body.success).toBe(false);
