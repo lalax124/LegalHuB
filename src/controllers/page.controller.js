@@ -10,6 +10,21 @@ const Notification = require("../models/notification.model.js");
 const axios = require("axios");
 
 // ---------- GitHub Helpers ----------
+async function fetchContributorDetails(username) {
+    const url = `https://api.github.com/users/${username}`;
+    const headers = {};
+    if (process.env.GITHUB_TOKEN) {
+        headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+    try {
+        const { data } = await axios.get(url, { headers });
+        return { bio: data.bio, name: data.name };
+    } catch (error) {
+        console.error(`Failed to fetch details for ${username}:`, error.message);
+        return { bio: null, name: null }; // Fail gracefully
+    }
+}
+
 async function fetchContributors(owner, repo) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contributors`;
     const headers = {};
@@ -17,7 +32,7 @@ async function fetchContributors(owner, repo) {
         headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
     }
     const { data } = await axios.get(url, { headers, params: { per_page: 100 } });
-    return data;
+    return data || [];
 }
 
 async function fetchRepoStats(owner, repo) {
@@ -378,24 +393,43 @@ const renderContributors = asyncHandler(async (req, res) => {
     const owner = process.env.REPO_OWNER || "dipexplorer";
     const repo = process.env.REPO_NAME || "LegalHuB";
 
-    let contributors = [];
+    let allContributors = [];
     let repoStats = null;
+    let spotlightContributor = null;
+
     try {
-        [contributors, repoStats] = await Promise.all([
+        [allContributors, repoStats] = await Promise.all([
             fetchContributors(owner, repo),
             fetchRepoStats(owner, repo),
         ]);
+
+        // Fetch detailed info for each contributor
+        const detailedContributors = await Promise.all(
+            allContributors.map(async (c) => {
+                const details = await fetchContributorDetails(c.login);
+                return { ...c, ...details };
+            })
+        );
+
+        allContributors = detailedContributors;
+
+        // Select a random contributor for the spotlight
+        if (allContributors.length > 0) {
+            const randomIndex = Math.floor(Math.random() * allContributors.length);
+            spotlightContributor = allContributors[randomIndex];
+        }
     } catch (err) {
         // fail-soft; still render page
-        contributors = [];
+        allContributors = [];
         repoStats = null;
     }
 
     res.render("pages/contributors", {
         owner,
         repo,
-        contributors,
+        contributors: allContributors,
         repoStats,
+        spotlightContributor,
     });
 });
 

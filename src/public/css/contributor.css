@@ -1,231 +1,301 @@
-/* ===== Contributors Teaser Slider ===== */
-.contributors-teaser {
-    text-align: center;
-    padding: 40px 0;
-}
+/* ===== Contributors Page Redesign ===== */
 
-.contributors-slider {
-    position: relative;
-    overflow: hidden;
-    max-width: 100%;
-    padding: 0 48px; /* wider padding for breathing room */
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 220px; /* increased height for larger cards */
-    margin: 0 auto;
+:root {
+    --contrib-bg: #1a1a2e;
+    --contrib-border: #2b2b4a;
+    --contrib-accent: #9c27b0;
+    --contrib-glow: rgba(156, 39, 176, 0.4);
+    --contrib-text: #e0e0e0;
+    --contrib-text-muted: #bdbdbd;
+    --contrib-radius: 16px;
+    --transition-speed: 0.4s;
 }
-
-.slider-track {
-    display: flex;
-    gap: 24px; /* more spacing between cards */
-    transition: transform 0.5s ease;
-    will-change: transform;
-    justify-content: center;
-    align-items: center;
-    padding: 20px 0;
-    box-sizing: border-box;
-    width: 100%;
-    position: relative;
-    z-index: 1;
-}
-
-.contrib-pill {
-    width: 160px; /* Slightly larger fixed width */
-    height: 200px; /* Fixed height for consistency */
-    background: #1a1a2e;
-    border: 1px solid #2b2b4a;
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Vertically center content */
-    text-decoration: none;
-    color: #e0e0e0;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    flex: 0 0 auto; /* Prevent flex resizing */
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    position: relative;
-    z-index: 1;
-    text-align: center;
-}
-
-.contrib-pill img {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #2b2b4a;
-    transition: transform 0.3s ease;
-    margin-bottom: 12px;
-}
-.contrib-pill:hover {
-    background: #2b2b4a;
-    border-color: #9c27b0;
-    transform: scale(1.03);
-    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
-}
-.contrib-pill:hover img {
-    transform: scale(1.1);
-    z-index: 4;
-}
-
-.contrib-pill.middle {
-    transform: scale(1.1);
-    box-shadow: 0 0 24px rgba(156, 39, 176, 0.6);
-    border-color: #9c27b0;
-    z-index: 2;
-}
-
-.slider-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #2b2b4a;
-    color: #fff;
-    border: none;
-    padding: 12px;
-    cursor: pointer;
-    z-index: 3;
-    font-size: 1.2rem;
-    border-radius: 50%;
-    transition: background 0.3s ease;
-}
-
-.slider-arrow:hover {
-    background: #9c27b0;
-}
-
-.slider-arrow.left {
-    left: 24px;
-}
-
-.slider-arrow.right {
-    right: 24px;
-}
-
-.slider-fog {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 60px;
-    z-index: 2;
-    pointer-events: none;
-}
-
-.left-fog {
-    left: 0;
-    background: linear-gradient(to right, #1a1a2e 0%, transparent 100%);
-}
-
-.right-fog {
-    right: 0;
-    background: linear-gradient(to left, #1a1a2e 0%, transparent 100%);
-}
-
-/* ===== Contributors Page ===== */
 
 .contributors-hero {
-    padding: 40px 0;
-    text-align: center;
+    padding: 40px 20px;
+
 }
 
 .contributors-container {
-    padding-bottom: 40px;
+    padding: 0 20px 40px;
 }
 
+/* --- Grid Layout --- */
 .contributors-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 24px;
 }
 
-.contrib-card {
-    background: #1a1a2e;
-    border: 1px solid #2b2b4a;
-    border-radius: 12px;
-    padding: 16px;
+/* --- Spotlight Card --- */
+.spotlight-card {
+    grid-column: span 2; /* Takes up two columns */
+    grid-row: span 1;
+    background: linear-gradient(135deg, #2b2b4a, #1a1a2e);
+    border: 1px solid var(--contrib-accent);
+    box-shadow: 0 0 30px var(--contrib-glow);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    border-radius: var(--contrib-radius);
+    animation: pulse-glow 4s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    from { box-shadow: 0 0 20px var(--contrib-glow); }
+    to { box-shadow: 0 0 40px rgba(156, 39, 176, 0.6); }
+}
+
+.spotlight-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--contrib-accent);
+    flex-shrink: 0;
+}
+
+.spotlight-content {
+    text-align: left;
+}
+
+.spotlight-title {
+    font-size: 1.1rem;
+    color: var(--contrib-text-muted);
+    margin-bottom: 8px;
+}
+
+.spotlight-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.spotlight-message {
+    font-size: 1rem;
+    color: var(--contrib-text);
+    line-height: 1.6;
+}
+
+/* --- Flip Card --- */
+.flip-card {
+    background-color: transparent;
+    width: 100%;
+    height: 320px;
+    perspective: 1000px;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.7s;
+    transform-style: preserve-3d;
+    border-radius: var(--contrib-radius);
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: var(--contrib-radius);
+    background: var(--contrib-bg);
+    border: 1px solid var(--contrib-border);
+    transition: all var(--transition-speed) ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: all 0.3s ease;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.contrib-card:hover {
+.flip-card:hover .flip-card-front {
+    border-color: var(--contrib-accent);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+.flip-card-back {
+    transform: rotateY(180deg);
+    justify-content: space-around;
     background: #2b2b4a;
-    border-color: #9c27b0;
-    transform: scale(1.03);
-    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3); /* subtle glow */
+    border-color: var(--contrib-accent);
 }
 
-.contrib-card img {
-    width: 88px;
-    height: 88px;
+/* --- Card Content --- */
+.contrib-avatar {
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #2b2b4a;
+    border: 3px solid var(--contrib-border);
     transition: transform 0.3s ease;
+    margin-bottom: 16px;
 }
 
-.contrib-card:hover img {
-    transform: scale(1.1); /* image zoom */
+.flip-card:hover .contrib-avatar {
+    transform: scale(1.1);
+    border-color: var(--contrib-accent);
 }
 
 .contrib-name {
-    margin-top: 10px;
+    font-size: 1.4rem;
     font-weight: 600;
     color: #fff;
+    margin: 0;
+}
+
+.contrib-stats {
+    font-size: 0.9rem;
+    color: var(--contrib-text-muted);
+    margin-top: 8px;
+}
+
+.contrib-stats i {
+    color: var(--contrib-accent);
+    margin-right: 4px;
+}
+
+/* --- Back of Card --- */
+.contrib-bio {
+    font-size: 0.95rem;
+    color: var(--contrib-text);
+    line-height: 1.6;
+    margin: 0;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.contrib-bio-text {
+    max-height: 150px;
+    overflow-y: auto;
 }
 
 .contrib-link {
-    color: #9c27b0;
+    display: inline-block;
+    background: var(--contrib-accent);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
     text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 16px;
 }
 
+.contrib-link:hover {
+    background: #fff;
+    color: var(--contrib-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--contrib-glow);
+}
+
+/* --- Repo Stats & Empty State --- */
 .repo-stats {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 12px;
     align-items: center;
-    margin-top: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
 }
 
 .repo-stats .btn {
-    padding: 8px 12px;
-    border: 1px solid #2b2b4a;
+    padding: 8px 16px;
+    border: 1px solid var(--contrib-border);
     border-radius: 8px;
     text-decoration: none;
-    margin: 0 4px;
-    display: inline-block;
-    color: #e0e0e0;
+    color: var(--contrib-text);
+    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
 .repo-stats .btn:hover {
-    border-color: #9c27b0;
+    border-color: var(--contrib-accent);
+    background: var(--contrib-accent);
     color: #fff;
 }
 
 .repo-stats .stats {
     display: flex;
-    gap: 12px;
-    color: #bdbdbd;
+    gap: 16px;
+    color: var(--contrib-text-muted);
+    font-size: 0.9rem;
+}
+
+.repo-stats .stats span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .contributors-empty {
     text-align: center;
-    color: #bdbdbd;
+    color: var(--contrib-text-muted);
+    padding: 40px;
+    font-size: 1.2rem;
 }
 
-/* Responsive and bold coursolin section */
-#coursolin {
+/* --- Section Title --- */
+.section-title {
     font-size: clamp(1.8rem, 4vw, 2.5rem);
     padding: 20px 0;
+    margin: 40px 0 20px;
     font-weight: 700;
-    color: #9c27b0;
+    color: var(--contrib-accent);
+    text-align: center;
+    border-top: 1px solid var(--contrib-border);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+    .spotlight-card {
+        grid-column: span 1; /* Stack on smaller screens */
+        flex-direction: column;
+        text-align: center;
+    }
+    .spotlight-content {
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .contributors-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .flip-card {
+        height: 300px;
+    }
+    .contrib-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    .contrib-name {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .contributors-grid {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+    .spotlight-card {
+        padding: 20px;
+    }
+    .spotlight-name {
+        font-size: 1.5rem;
+    }
 }
