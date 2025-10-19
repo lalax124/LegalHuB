@@ -47,3 +47,4 @@ jobs:
               if: always() # Always run this step, even if tests fail
               with:
                   paths: coverage/lcov-report/index.html
+              continue-on-error: true
