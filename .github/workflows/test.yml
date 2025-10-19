@@ -46,4 +46,4 @@ jobs:
               uses: test-summary/action@v2
               if: always() # Always run this step, even if tests fail
               with:
-                  paths: test-results.xml
+                  paths: coverage/lcov-report/index.html
