@@ -42,7 +42,7 @@ If the term is NOT a legal term (e.g., "india", "computer", "pizza"), respond wi
 {
   "term": "<term>",
   "isLegalTerm": false,
-  "message": "This is not a legal term. I specialize in legal terminology only. Please try searching for a legal term like \"contract\", \"tort\", \"divorce\", or \"constitutional law\"."
+  "message": "This is not a legal term. I specialize in legal terminology only. Please try searching for a legal term like contract, tort, divorce, or constitutional law."
 }
 
 If the term IS a legal term, respond ONLY with a valid JSON object with these fields:

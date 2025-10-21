@@ -592,7 +592,8 @@
                                     .replace(/^[\s\"]+/, '') // Remove leading spaces and quotes
                                     .replace(/[\s\",]+$/, '') // Remove trailing spaces, quotes, commas
                                     .replace(/\\n/g, ' ') // Replace escaped newlines with spaces
-                                    .replace(/\n/g, ' '); // Replace literal newlines with spaces
+                                    .replace(/\n/g, ' ') // Replace literal newlines with spaces
+                                    .replace(/&quot;/g, '"'); // Replace HTML entities
                             }
                             // If no definition, return the whole object as string
                             return JSON.stringify(jsonData, null, 2);
@@ -609,12 +610,17 @@
                         .replace(/"term"[^,]*,?\s*/g, '') // Remove "term": "value", patterns
                         .replace(/"isLegalTerm"[^,]*,?\s*/g, '') // Remove "isLegalTerm": value, patterns
                         .replace(/"definition"[^:]*:\s*/g, '') // Remove "definition": part
+                        .replace(/"message"[^:]*:\s*/g, '') // Remove "message": part
                         .replace(/^[\s\{"]*/g, '') // Remove opening braces and quotes
                         .replace(/[\}"\s,]*$/g, '') // Remove closing braces, quotes, whitespace and commas
                         .replace(/,$/, '') // Remove trailing comma (additional check)
                         .replace(/\\n/g, ' ') // Replace escaped newlines with spaces
                         .replace(/\"/g, '"') // Fix escaped quotes
                         .replace(/\n/g, ' ') // Replace literal newlines with spaces
+                        .replace(/&quot;/g, '"') // Replace HTML entities
+                        .replace(/&amp;/g, '&') // Replace HTML entities
+                        .replace(/&lt;/g, '<') // Replace HTML entities
+                        .replace(/&gt;/g, '>') // Replace HTML entities
                         .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
                         .trim();
                 };
@@ -624,8 +630,18 @@
                     // First try to extract just the definition if it's a complete JSON object
                     if (structured.trim().startsWith('{') && structured.trim().endsWith('}')) {
                         try {
+                            // Try to parse it as JSON
                             const jsonData = JSON.parse(structured);
-                            if (jsonData.definition) {
+                            
+                            // Check if this is a "not a legal term" response
+                            if (jsonData.isLegalTerm === false && jsonData.message) {
+                                // Create a clean structured object for non-legal terms
+                                structured = {
+                                    term: jsonData.term || term,
+                                    isLegalTerm: false,
+                                    message: jsonData.message
+                                };
+                            } else if (jsonData.definition) {
                                 // If we found a definition, create a clean structured object
                                 const cleanDefinition = cleanJsonText(jsonData.definition);
                                 structured = {
@@ -662,13 +678,35 @@
                 
                 // If AI explicitly says it's not a legal term, show the AI's message
                 if (structured.isLegalTerm === false && structured.message) {
+                    // Check if the message is a raw JSON string
+                    let messageText = structured.message;
+                    if (typeof messageText === 'string' && messageText.trim().startsWith('{') && messageText.trim().endsWith('}')) {
+                        try {
+                            // Try to parse it as JSON
+                            const jsonData = JSON.parse(messageText);
+                            messageText = jsonData.message || messageText;
+                        } catch (e) {
+                            // If parsing fails, continue with the original message
+                        }
+                    }
+                    
+                    // Clean the message to remove any JSON formatting
+                    const cleanMessage = cleanJsonText(messageText)
+                        .replace(/^[\s\"]+/, '') // Remove leading spaces and quotes
+                        .replace(/[\s\",]+$/, '') // Remove trailing spaces, quotes, commas
+                        .replace(/\\/g, '') // Remove backslashes
+                        .replace(/&quot;/g, '"') // Replace HTML entities
+                        .replace(/&amp;/g, '&') // Replace HTML entities
+                        .replace(/&lt;/g, '<') // Replace HTML entities
+                        .replace(/&gt;/g, '>'); // Replace HTML entities
+                        
                     htmlOutput += `<div class="term-section definition-section">
                         <div class="section-header">
                             <i class="fas fa-info-circle"></i>
                             <h4>Not a Legal Term</h4>
                         </div>
                         <div class="section-content">
-                            <p>${cleanJsonText(structured.message)}</p>
+                            <p>${cleanMessage}</p>
                         </div>
                     </div>`;
                 } else {
@@ -688,9 +726,27 @@
                     </div>`;
                 } else if (structured.raw) {
                     // Fallback to raw text if definition is not available
+                    let rawText = structured.raw;
+                    
+                    // Check if the raw text is a JSON string
+                    if (typeof rawText === 'string' && rawText.trim().startsWith('{') && rawText.trim().endsWith('}')) {
+                        try {
+                            // Try to parse it as JSON
+                            const jsonData = JSON.parse(rawText);
+                            // Extract the message if it exists
+                            if (jsonData.message) {
+                                rawText = jsonData.message;
+                            } else if (jsonData.definition) {
+                                rawText = jsonData.definition;
+                            }
+                        } catch (e) {
+                            // If parsing fails, continue with the original text
+                        }
+                    }
+                    
                     htmlOutput += `<div class="term-definition">
                         <h4>Definition:</h4>
-                        <p>${cleanJsonText(structured.raw.substring(0, 300))}${structured.raw.length > 300 ? "..." : ""}</p>
+                        <p>${cleanJsonText(rawText.substring(0, 300))}${rawText.length > 300 ? "..." : ""}</p>
                     </div>`;
                 }
 
