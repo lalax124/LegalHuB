@@ -468,10 +468,8 @@
     justify-content: space-between;
     gap: 12px;
     padding: 12px;
-    border-radius: 10px;
     cursor: pointer;
-    background: #fafbff;
-    border: 1px solid #eef2ff;
+    background: transparent;
 }
 .card__collapsible details summary .chev {
     transition: transform 0.18s ease;
