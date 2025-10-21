@@ -576,6 +576,77 @@
                 // Debug logging to help identify the issue
                 console.log("API Response:", data);
                 console.log("Structured data:", structured);
+                
+                // Function to clean JSON formatting characters for better display
+                const cleanJsonText = (text) => {
+                    if (typeof text !== 'string') return text;
+                    
+                    // First check if this looks like a complete JSON object
+                    if (text.trim().startsWith('{') && text.trim().endsWith('}')) {
+                        try {
+                            // Try to parse it as JSON
+                            const jsonData = JSON.parse(text);
+                            // Extract just the definition if it exists
+                            if (jsonData.definition) {
+                                return jsonData.definition
+                                    .replace(/^[\s\"]+/, '') // Remove leading spaces and quotes
+                                    .replace(/[\s\",]+$/, '') // Remove trailing spaces, quotes, commas
+                                    .replace(/\\n/g, ' ') // Replace escaped newlines with spaces
+                                    .replace(/\n/g, ' '); // Replace literal newlines with spaces
+                            }
+                            // If no definition, return the whole object as string
+                            return JSON.stringify(jsonData, null, 2);
+                        } catch (e) {
+                            // If parsing fails, continue with normal cleaning
+                        }
+                    }
+                    
+                    // Normal cleaning for other cases
+                    return text
+                        .replace(/```json\s*/g, '') // Remove ```json with possible whitespace
+                        .replace(/```/g, '') // Remove closing ```
+                        .replace(/\{[^}]*"term"[^}]*\}/g, '') // Remove { "term": "value", ... } patterns
+                        .replace(/"term"[^,]*,?\s*/g, '') // Remove "term": "value", patterns
+                        .replace(/"isLegalTerm"[^,]*,?\s*/g, '') // Remove "isLegalTerm": value, patterns
+                        .replace(/"definition"[^:]*:\s*/g, '') // Remove "definition": part
+                        .replace(/^[\s\{"]*/g, '') // Remove opening braces and quotes
+                        .replace(/[\}"\s,]*$/g, '') // Remove closing braces, quotes, whitespace and commas
+                        .replace(/,$/, '') // Remove trailing comma (additional check)
+                        .replace(/\\n/g, ' ') // Replace escaped newlines with spaces
+                        .replace(/\"/g, '"') // Fix escaped quotes
+                        .replace(/\n/g, ' ') // Replace literal newlines with spaces
+                        .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+                        .trim();
+                };
+                
+                // Clean the structured data if it's a string (likely when it's raw JSON)
+                if (typeof structured === 'string') {
+                    // First try to extract just the definition if it's a complete JSON object
+                    if (structured.trim().startsWith('{') && structured.trim().endsWith('}')) {
+                        try {
+                            const jsonData = JSON.parse(structured);
+                            if (jsonData.definition) {
+                                // If we found a definition, create a clean structured object
+                                const cleanDefinition = cleanJsonText(jsonData.definition);
+                                structured = {
+                                    term: jsonData.term || term,
+                                    isLegalTerm: jsonData.isLegalTerm !== false,
+                                    definition: cleanDefinition,
+                                    examples: (jsonData.examples || []).map(cleanJsonText)
+                                };
+                            } else {
+                                // No definition found, use the whole object as raw text
+                                structured = { term, raw: cleanJsonText(JSON.stringify(jsonData)), isLegalTerm: false };
+                            }
+                        } catch (e) {
+                            // If parsing fails, treat it as raw text
+                            structured = { term, raw: cleanJsonText(structured), isLegalTerm: false };
+                        }
+                    } else {
+                        // Not a complete JSON object, just clean the text
+                        structured = { term, raw: cleanJsonText(structured), isLegalTerm: false };
+                    }
+                }
 
                 // Create a clean, simple HTML output with definition and example
                 // Ensure we have the term name even if structured.term is not available
@@ -597,7 +668,7 @@
                             <h4>Not a Legal Term</h4>
                         </div>
                         <div class="section-content">
-                            <p>${structured.message}</p>
+                            <p>${cleanJsonText(structured.message)}</p>
                         </div>
                     </div>`;
                 } else {
@@ -611,15 +682,15 @@
                         </div>
                         <div class="section-content">
                         <p>${typeof structured.definition === 'string' ? 
-                            structured.definition : 
-                            structured.definition.short || structured.definition.description || structured.definition.detailed || 'No definition available.'}</p>
+                            cleanJsonText(structured.definition) : 
+                            cleanJsonText(structured.definition.short || structured.definition.description || structured.definition.detailed || 'No definition available.')}</p>
                         </div>
                     </div>`;
                 } else if (structured.raw) {
                     // Fallback to raw text if definition is not available
                     htmlOutput += `<div class="term-definition">
                         <h4>Definition:</h4>
-                        <p>${structured.raw.substring(0, 300)}${structured.raw.length > 300 ? "..." : ""}</p>
+                        <p>${cleanJsonText(structured.raw.substring(0, 300))}${structured.raw.length > 300 ? "..." : ""}</p>
                     </div>`;
                 }
 
@@ -635,7 +706,7 @@
                             <h4>Real-world Example</h4>
                         </div>
                         <div class="section-content">
-                            <div class="example-box">${example}</div>
+                            <div class="example-box">${cleanJsonText(example)}</div>
                         </div>
                     </div>`;
                 }
