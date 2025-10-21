@@ -75,6 +75,98 @@
 
     <style>
         /* Dictionary Search Results Styling */
+        
+        /* Enhanced Dictionary Result Styles */
+        .dictionary-result.enhanced {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #4361ee;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .dictionary-result.enhanced:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .term-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(67, 97, 238, 0.2);
+        }
+        
+        .term-badge {
+            background-color: #4361ee;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .term-section {
+            margin-bottom: 25px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #4361ee;
+        }
+        
+        .section-header i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .section-header h4 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .section-content {
+            line-height: 1.7;
+            color: #333;
+        }
+        
+        .section-content p {
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .example-box {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-left: 4px solid #4361ee;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .example-box::before {
+            content: "Example: ";
+            font-weight: 600;
+            font-style: normal;
+            color: #4361ee;
+        }
+        
+        /* End Enhanced Styles */
+        
         .search-loading {
             padding: 15px;
             text-align: center;
@@ -488,17 +580,40 @@
                 // Create a clean, simple HTML output with definition and example
                 // Ensure we have the term name even if structured.term is not available
                 const termName = structured.term || term;
-                let htmlOutput = `<div class="dictionary-result">
-                    <h3 class="term-name">${termName}</h3>`;
+                let htmlOutput = `<div class="dictionary-result enhanced">
+                    <div class="term-header">
+                        <h3 class="term-name">${termName}</h3>
+                        <div class="term-badge">Legal Term</div>
+                    </div>`;
 
-                // Add definition in simple language
-                // Handle different possible definition structures
-                if (structured.definition) {
-                    htmlOutput += `<div class="term-definition">
-                        <h4>Definition:</h4>
+                // Check if this is actually a legal term using the new isLegalTerm field from AI
+                const isLegalTerm = structured.isLegalTerm !== false;
+                
+                // If AI explicitly says it's not a legal term, show the AI's message
+                if (structured.isLegalTerm === false && structured.message) {
+                    htmlOutput += `<div class="term-section definition-section">
+                        <div class="section-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h4>Not a Legal Term</h4>
+                        </div>
+                        <div class="section-content">
+                            <p>${structured.message}</p>
+                        </div>
+                    </div>`;
+                } else {
+                    // Add definition in simple language
+                    // Handle different possible definition structures
+                    if (structured.definition) {
+                    htmlOutput += `<div class="term-section definition-section">
+                        <div class="section-header">
+                            <i class="fas fa-book-open"></i>
+                            <h4>What is ${termName}?</h4>
+                        </div>
+                        <div class="section-content">
                         <p>${typeof structured.definition === 'string' ? 
                             structured.definition : 
                             structured.definition.short || structured.definition.description || structured.definition.detailed || 'No definition available.'}</p>
+                        </div>
                     </div>`;
                 } else if (structured.raw) {
                     // Fallback to raw text if definition is not available
@@ -514,17 +629,29 @@
                         structured.examples[0] : 
                         structured.examples[0].description || structured.examples[0].text || '';
 
-                    htmlOutput += `<div class="term-example">
-                        <h4>Example:</h4>
-                        <p>${example}</p>
+                    htmlOutput += `<div class="term-section example-section">
+                        <div class="section-header">
+                            <i class="fas fa-lightbulb"></i>
+                            <h4>Real-world Example</h4>
+                        </div>
+                        <div class="section-content">
+                            <div class="example-box">${example}</div>
+                        </div>
                     </div>`;
                 }
 
+                }
+                
                 // If we still don't have any content, add a fallback message
-                if (!htmlOutput.includes('term-definition') && !htmlOutput.includes('term-example')) {
-                    htmlOutput += `<div class="term-definition">
-                        <h4>Definition:</h4>
-                        <p>No definition available for "${termName}". This might be due to a temporary issue with our AI service. Please try again later.</p>
+                if (!htmlOutput.includes('term-definition') && !htmlOutput.includes('term-example') && !htmlOutput.includes('definition-section')) {
+                    htmlOutput += `<div class="term-section definition-section">
+                        <div class="section-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h4>No Information Available</h4>
+                        </div>
+                        <div class="section-content">
+                            <p>No definition available for "${termName}". This might be due to a temporary issue with our AI service. Please try again later.</p>
+                        </div>
                     </div>`;
                 }
                 

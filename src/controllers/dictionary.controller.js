@@ -36,22 +36,32 @@ const getTerm = asyncHandler(async (req, res, next) => {
 
     // Prepare prompts
     const systemPrompt = `
-You are a legal expert AI. If possible, respond ONLY with a valid JSON object with these fields:
+You are a legal expert AI. First determine if the requested term is actually a legal term.
+
+If the term is NOT a legal term (e.g., "india", "computer", "pizza"), respond with this JSON:
 {
   "term": "<term>",
-  "definition": "<short explanation>",
+  "isLegalTerm": false,
+  "message": "This is not a legal term. I specialize in legal terminology only. Please try searching for a legal term like \"contract\", \"tort\", \"divorce\", or \"constitutional law\"."
+}
+
+If the term IS a legal term, respond ONLY with a valid JSON object with these fields:
+{
+  "term": "<term>",
+  "isLegalTerm": true,
+  "definition": "<short explanation without markdown formatting>",
   "types": ["..."],
   "keyAspects": ["..."],
   "examples": ["..."],
   "stepByStep": ["..."],
   "notes": "<extra>",
-  "relatedTerms": ["optional", "list"],
-  "raw": "<long fallback text>"
+  "relatedTerms": ["optional", "list"]
 }
-If you cannot, provide a clear explanation with labeled sections (Definition:, Types:, Examples:, Key Aspects:, Steps:, Notes:, Related Terms:).
+
+IMPORTANT: Do not use markdown formatting like **bold**, [links], or {braces} in your responses. Use plain text only.
 `.trim();
 
-    const userPrompt = `Explain the legal term "${normalized}" in structured format as above.`;
+    const userPrompt = `Determine if "${normalized}" is a legal term and provide the appropriate structured response as described above.`;
 
     let rawText = "";
     try {
