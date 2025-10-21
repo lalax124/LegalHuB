@@ -73,6 +73,80 @@
         </div>
     </section>
 
+    <style>
+        /* Dictionary Search Results Styling */
+        .search-loading {
+            padding: 15px;
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .dictionary-result {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #4361ee;
+        }
+
+        .term-name {
+            color: #4361ee;
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .term-definition, .term-example {
+            margin-bottom: 15px;
+        }
+
+        .term-definition h4, .term-example h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .term-definition p, .term-example p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .error-message {
+            padding: 15px;
+            background: #ffeeee;
+            border-radius: 8px;
+            color: #d32f2f;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .error-note {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .error-note p {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Result animation */
+        #result.show {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
     <!-- Top-Rated-Lawyers -->
     <section class="lawyer-section">
         <h2>👩‍⚖️ Top-Rated Legal Professionals</h2>
@@ -386,7 +460,7 @@
         const term = input.value.trim();
         if (!term) return;
 
-        definition.innerText = "🔎 Searching...";
+        definition.innerHTML = `<div class="search-loading">🔎 Searching for "${term}"...</div>`;
         resultContainer.classList.remove("hidden");
         resultContainer.classList.add("show");
 
@@ -395,13 +469,96 @@
             const data = await res.json();
 
             if (data.success) {
-                definition.innerHTML = data.data.response; // use innerHTML for formatted content
+                // Extract the structured data from the API response
+                // Handle different possible response structures
+                let structured;
+                if (data.data && data.data.structured) {
+                    structured = data.data.structured;
+                } else if (data.structured) {
+                    structured = data.structured;
+                } else {
+                    // Fallback: use the entire data object if structured is not found
+                    structured = data.data || data;
+                }
+                
+                // Debug logging to help identify the issue
+                console.log("API Response:", data);
+                console.log("Structured data:", structured);
+
+                // Create a clean, simple HTML output with definition and example
+                // Ensure we have the term name even if structured.term is not available
+                const termName = structured.term || term;
+                let htmlOutput = `<div class="dictionary-result">
+                    <h3 class="term-name">${termName}</h3>`;
+
+                // Add definition in simple language
+                // Handle different possible definition structures
+                if (structured.definition) {
+                    htmlOutput += `<div class="term-definition">
+                        <h4>Definition:</h4>
+                        <p>${typeof structured.definition === 'string' ? 
+                            structured.definition : 
+                            structured.definition.short || structured.definition.description || structured.definition.detailed || 'No definition available.'}</p>
+                    </div>`;
+                } else if (structured.raw) {
+                    // Fallback to raw text if definition is not available
+                    htmlOutput += `<div class="term-definition">
+                        <h4>Definition:</h4>
+                        <p>${structured.raw.substring(0, 300)}${structured.raw.length > 300 ? "..." : ""}</p>
+                    </div>`;
+                }
+
+                // Add one simple example if available
+                if (structured.examples && structured.examples.length > 0) {
+                    const example = typeof structured.examples[0] === 'string' ? 
+                        structured.examples[0] : 
+                        structured.examples[0].description || structured.examples[0].text || '';
+
+                    htmlOutput += `<div class="term-example">
+                        <h4>Example:</h4>
+                        <p>${example}</p>
+                    </div>`;
+                }
+
+                // If we still don't have any content, add a fallback message
+                if (!htmlOutput.includes('term-definition') && !htmlOutput.includes('term-example')) {
+                    htmlOutput += `<div class="term-definition">
+                        <h4>Definition:</h4>
+                        <p>No definition available for "${termName}". This might be due to a temporary issue with our AI service. Please try again later.</p>
+                    </div>`;
+                }
+                
+                htmlOutput += `</div>`;
+
+                definition.innerHTML = htmlOutput;
             } else {
-                definition.innerHTML = `<span style="color:red;">❌ Error: ${data.msg}</span>`;
+                definition.innerHTML = `<div class="error-message">❌ Error: ${data.msg}</div>`;
             }
         } catch (error) {
-            definition.innerText = "❌ Failed to fetch result. Try again!";
             console.error("Error:", error);
+
+            // Check if it's an AI service error
+            if (error.message && error.message.includes("AI request failed")) {
+                // Provide a fallback message with a simple definition
+                definition.innerHTML = `
+                    <div class="dictionary-result">
+                        <h3 class="term-name">${term}</h3>
+                        <div class="term-definition">
+                            <h4>Definition:</h4>
+                            <p>Our AI service is currently unavailable. "${term}" is a legal term that may have specific meaning in legal contexts. For accurate and up-to-date information, please consult a qualified legal professional or try searching again later.</p>
+                        </div>
+                        <div class="term-example">
+                            <h4>Example:</h4>
+                            <p>This term is commonly used in legal documents and proceedings. The specific application depends on the jurisdiction and context.</p>
+                        </div>
+                        <div class="error-note">
+                            <p><em>Note: For a complete definition and examples, please visit our <a href="/dictionary" style="color: #4361ee;">full dictionary page</a> or try again later.</em></p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                definition.innerHTML = `<div class="error-message">❌ Failed to fetch result. Please try again later.</div>`;
+            }
         }
     });
 </script>
