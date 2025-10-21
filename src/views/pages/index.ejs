@@ -78,12 +78,12 @@
         
         /* Enhanced Dictionary Result Styles */
         .dictionary-result.enhanced {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 16px;
             padding: 25px;
             margin-top: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #4361ee;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-left: 5px solid #6c63ff;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             overflow: hidden;
         }
@@ -115,10 +115,11 @@
         
         .term-section {
             margin-bottom: 25px;
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
         }
         
         .section-header {
@@ -141,7 +142,7 @@
         
         .section-content {
             line-height: 1.7;
-            color: #333;
+            color: #e0e0e0;
         }
         
         .section-content p {
@@ -150,8 +151,8 @@
         }
         
         .example-box {
-            background-color: rgba(67, 97, 238, 0.1);
-            border-left: 4px solid #4361ee;
+            background-color: rgba(108, 99, 255, 0.15);
+            border-left: 4px solid #6c63ff;
             padding: 15px;
             border-radius: 8px;
             margin-top: 10px;
@@ -175,19 +176,20 @@
         }
 
         .dictionary-result {
-            background: white;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 10px;
             padding: 20px;
             margin-top: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-left: 4px solid #4361ee;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            border-left: 4px solid #6c63ff;
         }
 
         .term-name {
-            color: #4361ee;
+            color: #a29bfe;
             font-size: 22px;
             margin-bottom: 15px;
             font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .term-definition, .term-example {
@@ -195,14 +197,15 @@
         }
 
         .term-definition h4, .term-example h4 {
-            color: #333;
+            color: #d1c4e9;
             font-size: 16px;
             margin-bottom: 8px;
             font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .term-definition p, .term-example p {
-            color: #555;
+            color: #e0e0e0;
             line-height: 1.6;
             font-size: 15px;
         }
@@ -228,8 +231,33 @@
             font-style: italic;
         }
 
-        /* Result animation */
+        /* Result styling */
+        #result {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+            border-left: 4px solid #6c63ff;
+        }
+        
+        .term-title {
+            color: #a29bfe;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        #term-definition {
+            color: #e0e0e0;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        
         #result.show {
+            display: block;
             animation: fadeIn 0.5s ease-in-out;
         }
 
