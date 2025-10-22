@@ -7,13 +7,31 @@
     <!-- Navigation & Login -->
     <div class="nav-container" id="nav-container">
       <ul class="nav-links">
+        <li><a href="/dictionary">Dictionary</a></li>
         <li><a href="/articles">Articles</a></li>
         <li><a href="/documents">Documents</a></li>
-        <!-- <li><a href="/articles">Articles & Guides</a></li> -->
         <li><a href="/rights">Fundamental Rights</a></li>
         <li><a href="/about">About</a></li>
-        <li><a href="/#FAQs">FAQs</a></li>
+        <li><a href="/#faq">FAQs</a></li>
       </ul>
+
+
+      <% if (locals.currentUser && currentUser.role === 'admin') { %>
+      <li class="nav-item dropdown" style="list-style: none;"> <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #fff; text-decoration: none; font-weight: bold;"> Admin Tools
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark">
+          <li><a class="dropdown-item" href="/api/admin/dashboard">Dashboard</a></li> 
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="/admin/articles">Manage Articles</a></li> 
+          <li><a class="dropdown-item" href="/admin/documents">Manage Documents</a></li>
+          <li><a class="dropdown-item" href="/admin/lawyers">Manage Lawyers</a></li>
+          <li><a class="dropdown-item" href="/admin/users">Manage Users</a></li>
+        </ul>
+      </li>
+    <% } %>
+    ```
+
+
     </div>
 
     <div class="navbar-right-section">
@@ -89,6 +107,40 @@
     
   </nav>
 </header>
+<style>
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 24px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-links li a {
+    position: relative;
+    text-decoration: none;
+    color: #ffffff; /* adjust based on your theme */
+    font-weight: 500;
+    transition: color 0.3s ease;
+    padding-bottom: 4px;
+  }
+
+  /* Hover underline effect */
+  .nav-links li a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    height: 2px;
+    background-color: white;
+    transition: width 0.3s ease-in-out;
+  }
+
+  .nav-links li a:hover::after {
+    width: 100%;
+  }
+</style>
 
 <script>
   (function () {
